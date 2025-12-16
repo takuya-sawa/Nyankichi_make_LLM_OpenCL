@@ -1,4 +1,5 @@
 #include "../include/transformer_opencl.h"
+#include "dense_tile.h" // PoC rec_gemm include
 #include "../include/math_opencl.h"
 #include <iostream>
 #include <sstream>
@@ -461,7 +462,7 @@ Tensor TransformerLayer::Forward(Tensor& x)
 #endif
 
     if (use_cpu_avx2) {
-        #include "../make_llm_High/include/dense_tile.h"
+        #include "dense_tile.h"
         make_llm_high::rec_gemm(x.h_data.data(), W_q.h_data.data(), Q.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
         make_llm_high::rec_gemm(x.h_data.data(), W_k.h_data.data(), K.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
         make_llm_high::rec_gemm(x.h_data.data(), W_v.h_data.data(), V.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);

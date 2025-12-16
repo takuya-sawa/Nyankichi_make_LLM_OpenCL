@@ -271,6 +271,8 @@ void DestroyOpenCL() {
     std::cout << "[OpenCL] Destroy" << std::endl;
 }
 
+#include "dense_tile.h"
+
 void matmul_opencl(Tensor& C, Tensor& A, Tensor& B) {
     // A: m x k, B: k x n, C: m x n
     int m = A.shape[0];
@@ -289,7 +291,6 @@ void matmul_opencl(Tensor& C, Tensor& A, Tensor& B) {
     // If OpenCL is not initialized or kernel not available, fallback to CPU
     if (!g_context || !g_queue || !g_matmul_kernel) {
         // Prefer optimized CPU path from make_llm_High if available
-        #include "../make_llm_High/include/dense_tile.h"
         make_llm_high::rec_gemm(A.h_data.data(), B.h_data.data(), C.h_data.data(), m, n, k, k, n, n);
         return;
     }
@@ -327,7 +328,7 @@ void matmul_opencl(Tensor& C, Tensor& A, Tensor& B) {
 cpu_fallback:
     // Fall back to CPU implementation on any failure
     // Use optimized CPU GEMM if available
-    #include "../make_llm_High/include/dense_tile.h"
+    #include "dense_tile.h"
     make_llm_high::rec_gemm(A.h_data.data(), B.h_data.data(), C.h_data.data(), m, n, k, k, n, n);
     
     // Note: if rec_gemm not available this still compiles; include brings declaration only.
