@@ -37,6 +37,9 @@ if(USE_OPENCL)
     )
 
     add_executable(TinyLLM_OPENCL ${SOURCES})
+    # Include make_llm_High headers so OpenCL target can use rec_gemm PoC
+    target_include_directories(TinyLLM_OPENCL PRIVATE ${CMAKE_SOURCE_DIR}/../make_llm_High/include)
+
     # test executable for gradient checks
     add_executable(TinyLLM_GRADTEST src/test_gradients.cpp src/transformer_opencl.cpp src/math_opencl.cpp src/tensor_opencl.cpp)
     target_compile_definitions(TinyLLM_GRADTEST PUBLIC USE_OPENCL)
@@ -66,10 +69,21 @@ if(USE_OPENCL)
     endif()
 
     set_target_properties(TinyLLM_OPENCL PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+    # Link in make_llm_High PoC implementation for rec_gemm and CPU detection
+    target_sources(TinyLLM_OPENCL PRIVATE ${CMAKE_SOURCE_DIR}/../make_llm_High/src/dense_tile.cpp)
+    target_include_directories(TinyLLM_OPENCL PRIVATE ${CMAKE_SOURCE_DIR}/../make_llm_High/include)
+    if(OpenMP_CXX_FOUND)
+      target_link_libraries(TinyLLM_OPENCL PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    if(MSVC)
+      target_compile_options(TinyLLM_OPENCL PRIVATE /openmp:experimental /utf-8 /arch:AVX2)
+    endif()
+
     message(STATUS "OpenCL Libraries: ${OpenCL_LIBRARIES}")
 
     # PoC test: transformer layer forward using CPU AVX2 path
-    add_executable(transformer_poc_test src/test_transformer_poc.cpp src/transformer_opencl.cpp src/math_opencl.cpp)
+    add_executable(transformer_poc_test src/test_transformer_poc.cpp src/transformer_opencl.cpp src/math_opencl.cpp src/math_dispatch.cpp src/tensor_opencl.cpp ../make_llm_High/src/dense_tile.cpp)
     target_include_directories(transformer_poc_test PRIVATE include)
     if(OpenMP_CXX_FOUND)
       target_link_libraries(transformer_poc_test PRIVATE OpenMP::OpenMP_CXX)
@@ -78,6 +92,9 @@ if(USE_OPENCL)
       target_compile_options(transformer_poc_test PRIVATE /openmp:experimental /utf-8 /arch:AVX2)
     endif()
     # Link or add OpenCL headers if available
+    if(TARGET OpenCL::OpenCL)
+      target_link_libraries(transformer_poc_test PUBLIC OpenCL::OpenCL)
+    endif()
     if(TARGET OpenCL::Headers)
       target_link_libraries(transformer_poc_test PUBLIC OpenCL::Headers OpenCL::HeadersCpp)
     elseif(DEFINED OpenCL_INCLUDE_DIRS)

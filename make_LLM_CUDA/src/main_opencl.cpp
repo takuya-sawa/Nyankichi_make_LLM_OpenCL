@@ -164,9 +164,10 @@ int main(int argc, char* argv[])
 
     bool run_train = true;
     bool run_infer = true;
-    bool force_cpu = false;
+    // Default to CPU execution. Use --opencl (or --gpu) to enable OpenCL explicitly.
+    bool use_opencl = false;
 
-    // Command-line options: --list-devices, --device <index>, --cpu, train, infer
+    // Command-line options: --list-devices, --device <index>, --cpu, --opencl, --gpu, train, infer
     for (int ai = 1; ai < argc; ++ai) {
         std::string arg = argv[ai];
         if (arg == "--list-devices") {
@@ -187,15 +188,27 @@ int main(int argc, char* argv[])
             continue;
         }
         if (arg == "--cpu") {
-            force_cpu = true;
+            use_opencl = false;
+        }
+        if (arg == "--opencl" || arg == "--gpu") {
+            use_opencl = true;
         }
         if (arg == "train") { run_train = true; run_infer = false; }
         else if (arg == "infer") { run_train = false; run_infer = true; }
     }
 
-    // Initialize OpenCL after parsing and potential device selection (skip if --cpu)
-    if (!force_cpu) {
+    // Initialize OpenCL only when explicitly requested
+    if (use_opencl) {
         InitOpenCL();
+        // Print explicit mode info: device index and name if initialization succeeded
+        cl_device_id dev = GetOpenCLDevice();
+        if (dev) {
+            char dname[512] = {0};
+            clGetDeviceInfo(dev, CL_DEVICE_NAME, sizeof(dname), dname, NULL);
+            std::ostringstream _oss; _oss << "[Mode] OpenCL enabled on device index " << GetSelectedOpenCLDeviceIndex() << ": " << dname << "\n"; out(_oss.str());
+        } else {
+            out(std::string("[Mode] OpenCL initialization failed; running in CPU-only mode\n"));
+        }
     } else {
         out(std::string("[Mode] Running in CPU-only mode\n"));
     }

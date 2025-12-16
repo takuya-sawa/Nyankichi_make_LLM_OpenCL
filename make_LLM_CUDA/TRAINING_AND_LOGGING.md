@@ -32,7 +32,9 @@ make_LLM_CUDA\build_opencl.bat
 ## CLI オプション（重要） 🧭
 - `--list-devices` : 利用可能な OpenCL デバイスを一覧表示
 - `--device <N>` : デフォルトで使うデバイスを選択（インデックス N）
-- `--cpu` : 明示的に CPU（OpenCL 無効）で実行
+- `--opencl` / `--gpu` : 明示的に OpenCL (GPU) を有効化して実行
+- `--cpu` : 明示的に CPU 実行（OpenCL を使わない）
+- **注意**: デフォルトは **CPU 実行** です。OpenCL を使う場合は明示的に `--opencl` を渡してください。
 - `--verbosity <N>` : ログ出力の詳細度（数値で制御）
   - **0**: ログ出力オフ（デフォルト）
   - **1**: 学習サマリ（Loss、パラメータ勾配 L2、更新の前後 L2 など）✅

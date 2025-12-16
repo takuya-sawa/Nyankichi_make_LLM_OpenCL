@@ -1,5 +1,6 @@
 #include "../include/transformer_opencl.h"
 #include "dense_tile.h" // PoC rec_gemm include
+#include "math_dispatch.h"
 #include "../include/math_opencl.h"
 #include <iostream>
 #include <sstream>
