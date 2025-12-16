@@ -1,0 +1,13 @@
+================================================
+  TinyLLM - OpenCL (CPU-backed stub)
+  Build: Dec 16 2025 13:16:00
+================================================
+
+[OpenCL] Platform 0: Intel(R) OpenCL HD Graphics
+[OpenCL] Device 0: Intel(R) HD Graphics 620
+[OpenCL] Init on device index 0
+[OpenCL] Device 0: Intel(R) HD Graphics 620
+
+[TinyLLM OpenCL stub] Model initialized (CPU-backed)
+[OpenCL] Destroy
+Done!

@@ -1,0 +1,19 @@
+# TinyLLM CUDA 版 - 訓練データ
+# 形式: 1行1文、#で始まる行はコメント
+# このファイルをカスタマイズしてモデルに異なるデータで学習させることができます
+
+I am a cat
+I am a dog
+The cat is cute
+The dog is loyal
+I like cats
+I like dogs
+Cats are animals
+Dogs are animals
+The cat likes fish
+The dog likes bones
+Cats sleep all day
+Dogs play all day
+The fish swims fast
+Birds fly high
+I love animals

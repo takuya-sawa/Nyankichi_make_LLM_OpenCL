@@ -1,0 +1,2 @@
+$line = (Get-Content 'C:\div\make_LLM_CUDA\src\main_opencl.cpp')[[int]147]
+for ($i = 0; $i -lt $line.Length; $i++) { $c = $line[$i]; $u = [int][char]$c; Write-Output ("{0,3}: '{1}' U+{2:X4}" -f $i, $c, $u) }

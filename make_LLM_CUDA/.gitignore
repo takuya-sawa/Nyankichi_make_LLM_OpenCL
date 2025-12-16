@@ -1,0 +1,29 @@
+# TinyLLM CUDA 版 - ビルド成果物
+bin/
+build/
+cmake-build-debug/
+cmake-build-release/
+.vs/
+.vscode/
+
+# コンパイル成果物
+*.o
+*.obj
+*.exe
+*.dll
+*.lib
+*.a
+*.so
+
+# モデルチェックポイント
+model_checkpoint.bin
+
+# IDE 設定
+*.sln
+*.vcxproj*
+*.user
+*.suo
+
+# OS 固有
+.DS_Store
+Thumbs.db

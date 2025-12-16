@@ -1,0 +1,9 @@
+================================================
+  TinyLLM - OpenCL (CPU-backed stub)
+  Build: Dec 16 2025 13:16:00
+================================================
+
+
+[TinyLLM OpenCL stub] Model initialized (CPU-backed)
+[OpenCL] Destroy
+Done!

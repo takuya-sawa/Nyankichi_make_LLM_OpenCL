@@ -1,0 +1,9 @@
+﻿build/
+bin/
+*.exe
+*.obj
+*.vcxproj*
+.vs/
+vcpkg/
+model_checkpoint.bin
+github_token.txt
