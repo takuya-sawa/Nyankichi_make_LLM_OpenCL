@@ -62,13 +62,46 @@ static void small_gemm_avx2_8x8(const float* A, const float* B, float* C,
                     __m256 tmp_hi[8];
                     for (int i = 0; i < 8; ++i) { tmp_lo[i] = _mm256_setzero_ps(); tmp_hi[i] = _mm256_setzero_ps(); }
 
-                    for (int k = kc; k < kend; ++k) {
+                    // Unrolled K loop with prefetching (4-way unroll)
+                    int k = kc;
+                    for (; k + 3 < kend; k += 4) {
+                        // prefetch ahead
+                        _mm_prefetch((const char*)&B[(k + 16) * ldb + j0], _MM_HINT_T0);
+                        for (int ii = 0; ii < 8; ++ii)
+                            _mm_prefetch((const char*)&A[(i0 + ii) * lda + k + 16], _MM_HINT_T0);
+
+                        __m256 b0 = _mm256_loadu_ps(&B[k * ldb + j0]);
+                        __m256 b1 = _mm256_loadu_ps(&B[(k + 1) * ldb + j0]);
+                        __m256 b2 = _mm256_loadu_ps(&B[(k + 2) * ldb + j0]);
+                        __m256 b3 = _mm256_loadu_ps(&B[(k + 3) * ldb + j0]);
+
+                        for (int i = 0; i < 8; ++i) {
+                            __m256 a0 = _mm256_set1_ps(A[(i0 + i) * lda + k + 0]);
+                            __m256 a1 = _mm256_set1_ps(A[(i0 + i) * lda + k + 1]);
+                            __m256 a2 = _mm256_set1_ps(A[(i0 + i) * lda + k + 2]);
+                            __m256 a3 = _mm256_set1_ps(A[(i0 + i) * lda + k + 3]);
+#ifdef __FMA__
+                            tmp_lo[i] = _mm256_fmadd_ps(a0, b0, tmp_lo[i]);
+                            tmp_lo[i] = _mm256_fmadd_ps(a1, b1, tmp_lo[i]);
+                            tmp_lo[i] = _mm256_fmadd_ps(a2, b2, tmp_lo[i]);
+                            tmp_lo[i] = _mm256_fmadd_ps(a3, b3, tmp_lo[i]);
+#else
+                            tmp_lo[i] = _mm256_add_ps(tmp_lo[i], _mm256_mul_ps(a0, b0));
+                            tmp_lo[i] = _mm256_add_ps(tmp_lo[i], _mm256_mul_ps(a1, b1));
+                            tmp_lo[i] = _mm256_add_ps(tmp_lo[i], _mm256_mul_ps(a2, b2));
+                            tmp_lo[i] = _mm256_add_ps(tmp_lo[i], _mm256_mul_ps(a3, b3));
+#endif
+                        }
+                    }
+                    for (; k < kend; ++k) {
                         __m256 b_lo = _mm256_loadu_ps(&B[k * ldb + j0 + 0]);
-                        // split b_lo into two __m256 halves (but _mm256_loadu_ps already has 8 floats)
-                        // We'll use b_lo directly and use broadcast of a elements
                         for (int i = 0; i < 8; ++i) {
                             __m256 a = _mm256_set1_ps(A[(i0 + i) * lda + k]);
+#ifdef __FMA__
+                            tmp_lo[i] = _mm256_fmadd_ps(a, b_lo, tmp_lo[i]);
+#else
                             tmp_lo[i] = _mm256_add_ps(tmp_lo[i], _mm256_mul_ps(a, b_lo));
+#endif
                         }
                     }
 
