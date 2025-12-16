@@ -33,6 +33,7 @@ if(USE_OPENCL)
         src/tensor_opencl.cpp
         src/math_opencl.cpp
         src/transformer_opencl.cpp
+        src/math_dispatch.cpp
     )
 
     add_executable(TinyLLM_OPENCL ${SOURCES})

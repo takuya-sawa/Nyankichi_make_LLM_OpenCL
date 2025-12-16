@@ -461,16 +461,10 @@ Tensor TransformerLayer::Forward(Tensor& x)
     if (getenv("USE_AVX2_CPU") != nullptr) use_cpu_avx2 = true;
 #endif
 
-    if (use_cpu_avx2) {
-        #include "dense_tile.h"
-        make_llm_high::rec_gemm(x.h_data.data(), W_q.h_data.data(), Q.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
-        make_llm_high::rec_gemm(x.h_data.data(), W_k.h_data.data(), K.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
-        make_llm_high::rec_gemm(x.h_data.data(), W_v.h_data.data(), V.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
-    } else {
-        matmul_opencl(Q, x, W_q); // Q = x @ W_q
-        matmul_opencl(K, x, W_k);
-        matmul_opencl(V, x, W_v);
-    }
+    // Use automatic dispatch: prefer optimized CPU AVX2 path when available, else OpenCL path
+    matmul_dispatch(Q, x, W_q); // Q = x @ W_q
+    matmul_dispatch(K, x, W_k);
+    matmul_dispatch(V, x, W_v);
 
     // cache Q/K/V if enabled
     if (cache_enabled) {

@@ -23,6 +23,11 @@ static bool cpu_has_avx2() {
     return avx && avx_os && avx2;
 }
 
+// Non-static wrapper visible to other translation units
+bool cpu_has_avx2_available() {
+    return cpu_has_avx2();
+}
+
 static bool cpu_has_fma() {
     int regs[4];
     __cpuidex(regs, 1, 0);

@@ -30,4 +30,7 @@ void batched_gemm_strided(const float* A, const float* B, float* C,
                           int lda, int ldb, int ldc,
                           ptrdiff_t strideA, ptrdiff_t strideB, ptrdiff_t strideC,
                           bool transposeB = false);
+
+// Runtime CPU feature query
+bool cpu_has_avx2_available();
 } // namespace make_llm_high
