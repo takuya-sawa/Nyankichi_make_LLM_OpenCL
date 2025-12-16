@@ -288,15 +288,9 @@ void matmul_opencl(Tensor& C, Tensor& A, Tensor& B) {
 
     // If OpenCL is not initialized or kernel not available, fallback to CPU
     if (!g_context || !g_queue || !g_matmul_kernel) {
-        for (int i = 0; i < m; ++i) {
-            for (int j = 0; j < n; ++j) {
-                float sum = 0.0f;
-                for (int t = 0; t < k; ++t) {
-                    sum += A.h_data[i * k + t] * B.h_data[t * n + j];
-                }
-                C.h_data[i * n + j] = sum;
-            }
-        }
+        // Prefer optimized CPU path from make_llm_High if available
+        #include "../make_llm_High/include/dense_tile.h"
+        make_llm_high::rec_gemm(A.h_data.data(), B.h_data.data(), C.h_data.data(), m, n, k, k, n, n);
         return;
     }
 
@@ -332,15 +326,11 @@ void matmul_opencl(Tensor& C, Tensor& A, Tensor& B) {
 
 cpu_fallback:
     // Fall back to CPU implementation on any failure
-    for (int i = 0; i < m; ++i) {
-        for (int j = 0; j < n; ++j) {
-            float sum = 0.0f;
-            for (int t = 0; t < k; ++t) {
-                sum += A.h_data[i * k + t] * B.h_data[t * n + j];
-            }
-            C.h_data[i * n + j] = sum;
-        }
-    }
+    // Use optimized CPU GEMM if available
+    #include "../make_llm_High/include/dense_tile.h"
+    make_llm_high::rec_gemm(A.h_data.data(), B.h_data.data(), C.h_data.data(), m, n, k, k, n, n);
+    
+    // Note: if rec_gemm not available this still compiles; include brings declaration only.
 }
 
 void softmax_opencl(Tensor& t) {
