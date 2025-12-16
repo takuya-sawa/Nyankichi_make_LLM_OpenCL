@@ -66,6 +66,19 @@ if(USE_OPENCL)
 
     set_target_properties(TinyLLM_OPENCL PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
     message(STATUS "OpenCL Libraries: ${OpenCL_LIBRARIES}")
+
+    # PoC test: transformer layer forward using CPU AVX2 path
+    add_executable(transformer_poc_test src/test_transformer_poc.cpp src/transformer_opencl.cpp src/math_opencl.cpp)
+    target_include_directories(transformer_poc_test PRIVATE include)
+    if(OpenMP_CXX_FOUND)
+      target_link_libraries(transformer_poc_test PRIVATE OpenMP::OpenMP_CXX)
+    endif()
+    if(MSVC)
+      target_compile_options(transformer_poc_test PRIVATE /openmp:experimental /utf-8 /arch:AVX2)
+    endif()
+    include(CTest)
+    add_test(NAME transformer_poc_test COMMAND transformer_poc_test)
+    set_tests_properties(transformer_poc_test PROPERTIES TIMEOUT 240)
 else()
     # CUDA バックエンド（既存）
     find_package(CUDA REQUIRED)

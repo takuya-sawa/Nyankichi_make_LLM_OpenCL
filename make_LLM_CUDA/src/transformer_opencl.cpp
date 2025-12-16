@@ -447,9 +447,29 @@ Tensor TransformerLayer::Forward(Tensor& x)
     Tensor K({seq_len, hidden_dim}); K.zero();
     Tensor V({seq_len, hidden_dim}); V.zero();
 
-    matmul_opencl(Q, x, W_q); // Q = x @ W_q
-    matmul_opencl(K, x, W_k);
-    matmul_opencl(V, x, W_v);
+    // PoC: if USE_AVX2_CPU env var is set, run optimized CPU GEMM (rec_gemm) directly
+    bool use_cpu_avx2 = false;
+#ifdef _WIN32
+    {
+        char* val = nullptr;
+        size_t len = 0;
+        getenv_s(&len, nullptr, 0, "USE_AVX2_CPU");
+        if (len > 0) use_cpu_avx2 = true;
+    }
+#else
+    if (getenv("USE_AVX2_CPU") != nullptr) use_cpu_avx2 = true;
+#endif
+
+    if (use_cpu_avx2) {
+        #include "../make_llm_High/include/dense_tile.h"
+        make_llm_high::rec_gemm(x.h_data.data(), W_q.h_data.data(), Q.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
+        make_llm_high::rec_gemm(x.h_data.data(), W_k.h_data.data(), K.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
+        make_llm_high::rec_gemm(x.h_data.data(), W_v.h_data.data(), V.h_data.data(), seq_len, hidden_dim, hidden_dim, hidden_dim, hidden_dim, hidden_dim);
+    } else {
+        matmul_opencl(Q, x, W_q); // Q = x @ W_q
+        matmul_opencl(K, x, W_k);
+        matmul_opencl(V, x, W_v);
+    }
 
     // cache Q/K/V if enabled
     if (cache_enabled) {
