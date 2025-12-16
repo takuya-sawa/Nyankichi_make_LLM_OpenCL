@@ -42,8 +42,20 @@ if(MSVC)
   target_compile_options(microkernel_test PRIVATE /openmp:experimental /utf-8 /arch:AVX2)
 endif()
 
+# PoC batched GEMM test
+add_executable(batched_gemm_test src/test_batched_gemm.cpp src/dense_tile.cpp)
+target_include_directories(batched_gemm_test PRIVATE include)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(batched_gemm_test PRIVATE OpenMP::OpenMP_CXX)
+endif()
+if(MSVC)
+  target_compile_options(batched_gemm_test PRIVATE /openmp:experimental /utf-8 /arch:AVX2)
+endif()
+
 # CTest integration
 include(CTest)
 enable_testing()
 add_test(NAME microkernel_test COMMAND microkernel_test)
 set_tests_properties(microkernel_test PROPERTIES TIMEOUT 120)
+add_test(NAME batched_gemm_test COMMAND batched_gemm_test)
+set_tests_properties(batched_gemm_test PROPERTIES TIMEOUT 120)

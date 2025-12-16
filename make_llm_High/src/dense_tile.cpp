@@ -214,4 +214,18 @@ void naive_gemm(const float* A, const float* B, float* C, int M, int N, int K,
     }
 }
 
+// PoC: simple batched strided GEMM that loops over batches and calls rec_gemm
+void batched_gemm_strided(const float* A, const float* B, float* C,
+                          int batch, int M, int N, int K,
+                          int lda, int ldb, int ldc,
+                          ptrdiff_t strideA, ptrdiff_t strideB, ptrdiff_t strideC,
+                          bool transposeB) {
+    for (int b = 0; b < batch; ++b) {
+        const float* Ab = A + b * strideA;
+        const float* Bb = B + b * strideB;
+        float* Cb = C + b * strideC;
+        // For PoC, ignore transposeB and call rec_gemm
+        rec_gemm(Ab, Bb, Cb, M, N, K, lda, ldb, ldc, 64*64*64);
+    }
+}
 } // namespace make_llm_high

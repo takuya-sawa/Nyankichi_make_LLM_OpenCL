@@ -22,4 +22,12 @@ void small_gemm_base(const float* A, const float* B, float* C,
                      int M, int N, int K,
                      int lda, int ldb, int ldc);
 
+// Batched strided GEMM (PoC - simple stride units: elements)
+// Performs for b in [0, batch): C_b = A_b * B_b + C_b
+// strideA/strideB/strideC are in number of elements (not bytes)
+void batched_gemm_strided(const float* A, const float* B, float* C,
+                          int batch, int M, int N, int K,
+                          int lda, int ldb, int ldc,
+                          ptrdiff_t strideA, ptrdiff_t strideB, ptrdiff_t strideC,
+                          bool transposeB = false);
 } // namespace make_llm_high
